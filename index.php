@@ -8,7 +8,7 @@
 <link rel=stylesheet href="/css/main.css">
 <script>
     var watchers = new Array();
-    function ajaxRunServerCommand ( server, command) {
+    function ajaxRunServerCommand ( server, command, parameters) {
         var reqObj = new XMLHttpRequest();
         var reqData = new FormData();
         var url = '//<?php print $_SERVER['SERVER_NAME'].$scriptpath; ?>worker.php';
@@ -16,6 +16,9 @@
         domobj.innerHTML = 'Refreshing...';
         reqData.append('server',server);
         reqData.append('command',command);
+	if (parameters) {
+		reqData.append('parameters',parameters);
+	}
         reqObj.onreadystatechange = function (oEvent) {
             if (reqObj.readyState == 4) {
                 if (reqObj.status == 200) {
@@ -78,8 +81,8 @@
                 'clearop' => array('title' => "Clear Op", 'help' => 'Clear the operation marker')
                );
     if ($cluster != '') {
-      print "<h2>$cluster</h2>\n";
       print "<div class='incluster'>\n";
+      print "<a href='#'><h2>$cluster</h2></a>\n";
     } 
     foreach ($arks as $name => $ark) {
       if (
@@ -99,7 +102,8 @@
         foreach ($cmds as $cmd => $info) {
           print "<a href=\"#\" onClick=\"javascript:ajaxRunServerCommand('$name','$cmd'); return 0;\" title=\"".$info['help']."\">".$info['title']."</a> ";
         }
-        print "<a href=\"#\" onClick=\"\" title=\"configure this server\">Configure</a>";
+        print "<a href=\"#\" onClick=\"\" title=\"send messages to servers\" class=\"disabled\">Message</a> ";
+        print "<a href=\"#\" onClick=\"\" title=\"configure this server\" class=\"disabled\">Configure</a> ";
         print "</div>\n";
         print "</div>\n";
       }
@@ -109,6 +113,14 @@
     }
   }
 ?>
+<div id="messagebox" class="hiddenconfig" style="display: none;">
+<h3>Send a message to your Ark Players:</h3>
+<label for="arkmsg">Message text</label><input type="text" name="arkmsg" id="arkmsg"><br>
+<label for="msgtocluster">Send to Cluster</label><input type="checkbox" name="msgtocluster" id="msgtocluster" value="q"><br>
+<label for="msgtoall">Send to All</label><input type="checkbox" name="msgtoall" id="msgtoall" value=1><br>
+<label for="setmotd">Set MOTD</label><input type="checkbox" name="setmotd" id="setmotd" value=1><br>
+<button type="button">Send</button>
+</div>
 <div id="confbox" class="hiddenconfig" style="display: none;">
 <!-- Build a series of linked tab boxes for configuration options. -->
 <!-- Each box should be separated by purpose. -->

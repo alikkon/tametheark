@@ -16,9 +16,39 @@ h1 {
 }
 
 h2 {
+	margin: 0;
+	padding: 0;
+	border: 0;
 	background: #c2b280;
 }
 
+a:link h2, a:visited h2, a:active h2, a h2, h2 {
+	color: black;
+	text-decoration: none;
+}
+
+.incluster div a:link, .incluster div a:visited, .incluster div a:active {
+	background: lightgray;
+	padding-left: 0.25em;
+	padding-right: 0.25em;
+	border: 1px solid black;
+	border-radius: 0.25em;
+	color: black;
+	text-decoration: none;
+}
+
+.incluster div a:link.disabled, .incluster div a:visited.disabled, .incluster div a:active.disabled {
+	color: gray;
+	background: white;
+	border: 1px solid lightgray;
+	cursor: default;
+}
+
 .incluster {
-	margin-left: 1em;
+	margin-top: 1em;
+	border: 1px solid black;
+}
+
+.incluster div {
+	padding-left: 1em;
 }
