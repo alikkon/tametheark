@@ -28,6 +28,7 @@ I think that's it... if it doesn't work for you, let's determine why and add it 
 ## What works?
 
 Some things!
+
 1. Force your Ark server to save with the Save command.
 2. Shut your server down with Shutdown.
 3. Start it up with Startup.
