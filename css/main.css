@@ -5,6 +5,9 @@ html, body {
 }
 
 h1 {
+	margin: 0;
+	padding: 0;
+	border: 0;
 	background: black;
 	color: white;
 	min-height: 3em;
@@ -12,7 +15,8 @@ h1 {
 	font-size: 300%;
 }
 
-h1 span {
+h2 {
+	background: #c2b280;
 }
 
 .incluster {

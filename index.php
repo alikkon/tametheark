@@ -1,5 +1,7 @@
-<?php if (getenv('https') == 'on') { $proto = 'https'; } else { $proto = 'http'; } ?>
-
+<!DOCTYPE html>
+<?php
+  include('conf.php');
+?>
 <html>
 <head>
 <title>Tame The Ark</title>
@@ -9,12 +11,11 @@
     function ajaxRunServerCommand ( server, command) {
         var reqObj = new XMLHttpRequest();
         var reqData = new FormData();
-        var url = '//<?php print $_SERVER['SERVER_NAME']; ?>/worker.php';
+        var url = '//<?php print $_SERVER['SERVER_NAME'].$scriptpath; ?>worker.php';
         var domobj = document.getElementById('status' + server);
-        console.log(server + ' ' + command);
         domobj.innerHTML = 'Refreshing...';
         reqData.append('server',server);
-                reqData.append('command',command);
+        reqData.append('command',command);
         reqObj.onreadystatechange = function (oEvent) {
             if (reqObj.readyState == 4) {
                 if (reqObj.status == 200) {
@@ -32,7 +33,6 @@
                         domobj.innerHTML = 'got nothing back!';
                     }
                     if (typeof(response['overridecommand']) != 'undefined') {
-                        console.log('received override command');
                         if (typeof(watchers[server] != 'undefined')) {
                             clearTimeout(watchers[server]);
                         }
@@ -55,7 +55,6 @@
 <body>
 <h1>Tame The Ark</h1>
 <?php
-  include('conf.php');
   include('functions.php');
   $arks = getAllConfs();
   $clusters = array();
