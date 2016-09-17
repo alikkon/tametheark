@@ -2,4 +2,5 @@
 $arkpath = '/home/steam/ArkServer';
 $steampath = '/home/steam/steamcmd';
 $scriptpath = '/';
+$maintintervals = 5;
 ?>

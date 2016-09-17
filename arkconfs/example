@@ -8,6 +8,7 @@ rconport=ENTER YOUR RCON PORT - USE 3333 IF UNSURE, MUST BE UNIQUE
 queryport=ENTER YOUR SERVICE PORT - USE 27015 IF UNSURE, MUST BE UNIQUE
 map=ENTER THE NAME OF YOUR MAP HERE: TheCenter, TheIsland, ScorchedEarth_P
 clusterid=NAME YOUR SERVICE CLUSTER
+motd="Ark: It's my anti-drug!"
 # Other server options
 opts:AllowCaveBuildingPVE=true
 opts:AllowFlyerCarryPVE=true

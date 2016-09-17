@@ -6,6 +6,7 @@ $options = array(
 	'allowThirdPersonPlayer' => array( 'type' => 'bool', 'default' => 'false' ),
 	'globalVoiceChat' => array( 'type' => 'bool', 'default' => 'false' ),
 	'ShowMapPlayerLocation' => array( 'type' => 'bool', 'default' => 'false' ),
+	'noTributeDownloads' =>  array( 'type' => 'bool', 'default' => 'false' ),
 	'proximityChat' =>  array( 'type' => 'bool', 'default' => 'false' ),
 	'serverPVE' =>  array( 'type' => 'bool', 'default' => 'false' ),
 	'serverHardcore' =>  array( 'type' => 'bool', 'default' => 'false' ),
@@ -62,14 +63,7 @@ $options = array(
 	'ActiveMods' => array( 'type' => 'string', 'default' => '' ),
 	'MapModID' => array( 'type' => 'string', 'default' => '' ),
 	'GameModIds' => array( 'type' => 'string', 'default' => '' ),
-	'MaxTamedDinos' => array( 'type' => 'int', 'default' => 4000 ),
-        'noTributeDownloads' =>  array( 'type' => 'bool', 'default' => 'false' ),
-	'PreventDownloadSurvivors' =>  array( 'type' => 'bool', 'default' => 'false' ),
-	'PreventDownloadItems' =>  array( 'type' => 'bool', 'default' => 'false' ),
-	'PreventDownloadDinos' =>  array( 'type' => 'bool', 'default' => 'false' ),
-	'PreventUploadSurvivors' =>  array( 'type' => 'bool', 'default' => 'false' ),
-	'PreventUploadItems' =>  array( 'type' => 'bool', 'default' => 'false' ),
-	'PreventUploadDinos' =>  array( 'type' => 'bool', 'default' => 'false' )
+	'MaxTamedDinos' => array( 'type' => 'int', 'default' => 4000 )
 );
 
 ksort($options);

@@ -5,52 +5,100 @@
 <html>
 <head>
 <title>Tame The Ark</title>
-<link rel=stylesheet href="/css/main.css">
+<link rel=stylesheet href="<?php print $scriptpath; ?>css/main.css">
+<script type="text/javascript" src="<?php print $scriptpath; ?>resources/jquery-2.2.0.min.js"></script>
 <script>
-    var watchers = new Array();
+    if (!Date.now) {
+        Date.now = function() { return new Date().getTime(); }
+    }
+    function timestamp() {
+        return (Date.now() / 1000 | 0)
+    }
+
+    var watchers = {};
+    var trackers = {};
+
     function ajaxRunServerCommand ( server, command, parameters) {
-        var reqObj = new XMLHttpRequest();
-        var reqData = new FormData();
-        var url = '//<?php print $_SERVER['SERVER_NAME'].$scriptpath; ?>worker.php';
-        var domobj = document.getElementById('status' + server);
-        domobj.innerHTML = 'Refreshing...';
-        reqData.append('server',server);
-        reqData.append('command',command);
+        var domobj = $( '#status' + server );
+        var reqData = {};
+        reqData['server'] = server;
+        reqData['command'] = command;
 	if (parameters) {
-		reqData.append('parameters',parameters);
+            reqData['parameters'] = parameters;
 	}
-        reqObj.onreadystatechange = function (oEvent) {
-            if (reqObj.readyState == 4) {
-                if (reqObj.status == 200) {
-                    var response = eval('(' + reqObj.responseText + ')');
-                    if (typeof(response['error']) != 'undefined') {
-                        domobj.innerHTML = response['error'];
-                    } else if (response['success']) {
-                        domobj.innerHTML = response['success'][0];
-                        if (response['success'].length > 1) {
-                            for (i = 0; i < response['success'][1].length; i++) {
-                                domobj.innerHTML += "<br>" + response['success'][1][i];
-                            }
+        $.ajax({
+            url: '//<?php print $_SERVER['SERVER_NAME'].$scriptpath; ?>worker.php',
+            dataType: 'json',
+            data: reqData,
+            method: 'post',
+            error: function(reqObj,errmsg) { console.log("Error",errmsg); domobj.html( errmsg ); },
+            success: function(response) {
+                if (typeof(response['error']) != 'undefined') {
+                    domobj.html( response['error'] );
+                } else if (response['success']) {
+                    domobj.html( response['success'][0] );
+                    if (response['success'].length > 1) {
+                        for (i = 0; i < response['success'][1].length; i++) {
+                            domobj.html( domobj.html() + "<br>" + response['success'][1][i] );
                         }
-                    } else {
-                        domobj.innerHTML = 'got nothing back!';
-                    }
-                    if (typeof(response['overridecommand']) != 'undefined') {
-                        if (typeof(watchers[server] != 'undefined')) {
-                            clearTimeout(watchers[server]);
-                        }
-                        watchers[server] = setTimeout(function() { ajaxRunServerCommand(server,response['overridecommand']) },response['newtimer']||15000);
-                    } else {
-                        clearTimeout(watchers[server]);
-                        watchers[server] = setTimeout(function() { ajaxRunServerCommand(server,'status') },15000);
                     }
                 } else {
-                    console.log("Error",reqObj.statusText);
+                    domobj.innerHTML = 'got nothing back!';
+                }
+                if (typeof(response['overridecommand']) != 'undefined') {
+                    if (typeof(watchers[server] != 'undefined')) {
+                        clearTimeout(watchers[server]);
+                    }
+                    watchers[server] = setTimeout(function() { ajaxRunServerCommand(server,response['overridecommand']) },response['newtimer']||15000);
+                    trackers[server] = timestamp();
+                } else {
+                    clearTimeout(watchers[server]);
+                    watchers[server] = setTimeout(function() { ajaxRunServerCommand(server,'status') },15000);
+                    trackers[server] = timestamp();
                 }
             }
-        }
-        reqObj.open("POST",url,true);
-        reqObj.send(reqData);
+        })
+        return 0;
+    }
+
+    function watchTheWatchers() {
+        $.each(trackers,function(server, lastseen) {
+            if (lastseen < (timestamp() - 60)) {
+                clearTimeout(watchers[server]);
+                ajaxRunServerCommand( server, 'status' );
+                console.log('Connection to ' + server + ' timed out. Attempting to re-establish.');
+            }
+        });
+        setTimeout(function() { watchTheWatchers() },15000);
+    }
+
+    setTimeout(function() { watchTheWatchers() },15000);
+
+    function showSendMessageDialog( server ) {
+        $( '#arkmsgserver' ).val( server );
+        $( '#arkmsg' ).val( '' );
+        $( '#arkmsgdisplay' ).html( server );
+        $( '#messagebox' ).removeClass('hiddenconfig');
+	$( '#messagebox' ).addClass('configoverlay');
+        return 0;
+    }
+
+    function sendMessageToArk() {
+        ajaxRunServerCommand($( '#arkmsgserver' ).val(), 'message', $( '#arkmsg' ).val());
+        $( '#arkmsgserver' ).val( '' );
+        $( '#arkmsg' ).val( '' );
+        $( '#arkmsgdisplay' ).html( '' );
+        $( '#messagebox' ).addClass('hiddenconfig');
+        $( '#messagebox' ).removeClass('configoverlay');
+        return 0;
+    }
+
+    function cancelMessageToArk() {
+        $( '#arkmsgserver' ).val( '' );
+        $( '#arkmsg' ).val( '' );
+        $( '#arkmsgdisplay' ).html( '' );
+        $( '#messagebox' ).addClass('hiddenconfig');
+        $( '#messagebox' ).removeClass('configoverlay');
         return 0;
     }
 </script>
@@ -102,8 +150,8 @@
         foreach ($cmds as $cmd => $info) {
           print "<a href=\"#\" onClick=\"javascript:ajaxRunServerCommand('$name','$cmd'); return 0;\" title=\"".$info['help']."\">".$info['title']."</a> ";
         }
-        print "<a href=\"#\" onClick=\"\" title=\"send messages to servers\" class=\"disabled\">Message</a> ";
-        print "<a href=\"#\" onClick=\"\" title=\"configure this server\" class=\"disabled\">Configure</a> ";
+        print "<a href=\"#\" title=\"send messages to servers\" onClick=\"showSendMessageDialog('$name');\">Message</a> ";
+        print "<a href=\"#\" title=\"configure this server\" class=\"disabled\">Configure</a> ";
         print "</div>\n";
         print "</div>\n";
       }
@@ -113,15 +161,18 @@
     }
   }
 ?>
-<div id="messagebox" class="hiddenconfig" style="display: none;">
-<h3>Send a message to your Ark Players:</h3>
+<div id="messagebox" class="hiddenconfig">
+<div>
+<h3>Send a message to the players on <span id='arkmsgdisplay'></span>:</h3>
+<input type="hidden" name="arkmsgserver" id="arkmsgserver" value="">
 <label for="arkmsg">Message text</label><input type="text" name="arkmsg" id="arkmsg"><br>
-<label for="msgtocluster">Send to Cluster</label><input type="checkbox" name="msgtocluster" id="msgtocluster" value="q"><br>
-<label for="msgtoall">Send to All</label><input type="checkbox" name="msgtoall" id="msgtoall" value=1><br>
-<label for="setmotd">Set MOTD</label><input type="checkbox" name="setmotd" id="setmotd" value=1><br>
-<button type="button">Send</button>
+<!--<label for="msgtocluster">Send to Cluster</label><input type="checkbox" name="msgtocluster" id="msgtocluster" value="q"><br>-->
+<!--<label for="msgtoall">Send to All</label><input type="checkbox" name="msgtoall" id="msgtoall" value=1><br>-->
+<!--<label for="setmotd">Set MOTD</label><input type="checkbox" name="setmotd" id="setmotd" value=1><br>-->
+<button type="button" onClick="sendMessageToArk();">Send</button> <button type="button" onClick="cancelMessageToArk();">Cancel</button>
 </div>
-<div id="confbox" class="hiddenconfig" style="display: none;">
+</div>
+<div id="confbox" class="hiddenconfig">
 <!-- Build a series of linked tab boxes for configuration options. -->
 <!-- Each box should be separated by purpose. -->
 <!-- -->

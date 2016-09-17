@@ -20,24 +20,15 @@
         print json_encode($ark);
         exit;
     }
-
     $ark['rcon'] = new SourceQuery();
-//    $ark['query'] = new SourceQuery();
     try
     {
         $ark['rcon']->Connect( 'localhost', $ark['rconport'], 1, SourceQuery :: SOURCE );
-//        $ark['query']->Connect( 'localhost', $ark['queryport'], 1, SourceQuery :: GOLDSOURCE );
         $ark['rcon']->SetRconPassword( $ark['adminpassword'] );
-/*
-var_dump($ark['query']->GetInfo());
-var_dump($ark['query']->GetPlayers());
-var_dump($ark['query']->GetRules());
-*/
     }
     catch( Exception $e )
     {
     }
-//    $rcon->Disconnect( );
 
     $cmds = array('save','startup', 'shutdown','update','restart','maintenance','restart','clearop');
     $status = array('error' => 'command not found');
@@ -72,6 +63,14 @@ var_dump($ark['query']->GetRules());
     } else {
         if ($command == 'status') {
             sendOutput(getStatus($ark,$server));
+        } elseif ($command == 'clearop') {
+            if ( file_exists($ark['arkpath'].'/'.$server.'/op') ) {
+                unlink($ark['arkpath'].'/'.$server.'/op');
+                sendOutput(array('success' => array('Operation lock deleted.')));
+            } else {
+                unlink($ark['arkpath'].'/'.$server.'/op');
+                sendOutput(array('success' => array('No operation lock found')));
+            }
         } elseif ($command == 'save') {
             sendOutput(saveWorld($ark));
         } elseif ($command == 'startup') {
@@ -135,9 +134,13 @@ var_dump($ark['query']->GetRules());
             startArk($ark,$server);
             unlink($ark['arkpath']."/".$server."/steam.out");
             unlink($ark['arkpath'].'/'.$server.'/op');
+        } elseif ($command == 'message') {
+            $parameters = $_POST['parameters'];
+            $res = $ark['rcon']->Rcon( "broadcast \"$parameters\"" );
+            sendOutput(array('success' => array("Sent message: $parameters")));
         } elseif ($command == 'maintenance') {
             // Set op flag
-            file_put_contents($ark['arkpath'].'/'.$server.'/op',"command=restart");
+           file_put_contents($ark['arkpath'].'/'.$server.'/op',"command=restart");
             // Notify about command status.
             sendOutput(array('success' => array('Beginning update process...'), 'overridecommand' => 'status', 'overridetimer' => 3000));
             // Determine if we need to kill the process or not.
@@ -145,6 +148,7 @@ var_dump($ark['query']->GetRules());
             if ($currstatus != SRC_DEAD) {
                 // Send in-game notifications.
                 $res = $ark['rcon']->Rcon( 'SetMessageOfTheDay "The server will be going down shortly for maintenance."' );
+                $i = $maintintervals;
                 while ($i > 0) {
                     file_put_contents($ark['arkpath'].'/'.$server.'/op',"command=restart\nstage=notification$i");
                     $res = $ark['rcon']->Rcon( "broadcast \"Maintenance begins in $i minutes\"" );
@@ -169,13 +173,13 @@ var_dump($ark['query']->GetRules());
             // Start back up.
             file_put_contents($ark['arkpath'].'/'.$server.'/op',"command=maintenance\nstage=startup");
             startArk($ark,$server);
+            $res = $ark['rcon']->Rcon( 'SetMessageOfTheDay "'.$ark['motd'].'"' );
             unlink($ark['arkpath']."/".$server."/steam.out");
             unlink($ark['arkpath'].'/'.$server.'/op');
         }
     }
 
     $ark['rcon']->Disconnect();
-//    $ark['query']->Disconnect();
 
     // Check to see if we're in the middle of an operation.
     function opCheck($ark,$instance) {
@@ -204,7 +208,6 @@ var_dump($ark['query']->GetRules());
         chdir($ark['arkpath'].'/ShooterGame/Binaries/Linux');
         $opts = buildOpts($ark);
         // Spawn process.
-//        exec("/bin/nohup ./ShooterGameServer TheIsland$opts?listen -server -log > ".$ark['arkpath']."/".$server."/out 2>&1 & echo $! > ".$ark['arkpath']."/".$server."/pid");
         exec("/bin/nohup /bin/nice ./ShooterGameServer ".($ark['map'] ? $ark['map'] : 'TheIsland')."$opts?AltSaveDirectoryName=$server?listen".
         ($ark['clusterid'] ? ' -NoTransferFromFiltering -clusterid='.$ark['clusterid'] : '').
         " -server -log > ".$ark['arkpath']."/".$server."/out 2>&1 & echo $! > ".$ark['arkpath']."/".$server."/pid");
@@ -293,7 +296,6 @@ var_dump($ark['query']->GetRules());
             $res = $ark['rcon']->Rcon('listplayers');
         } catch (Exception $e) { $res = '';}
         if ($res) {
-#            sort($res);
             $status = array('success' => array('Ark is running', array($res)));
             $src = SRC_ALIVE;
         } else {

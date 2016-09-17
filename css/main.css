@@ -52,3 +52,26 @@ a:link h2, a:visited h2, a:active h2, a h2, h2 {
 .incluster div {
 	padding-left: 1em;
 }
+
+.hiddenconfig {
+	display: none;
+}
+
+.configoverlay {
+	display: block;
+	position: fixed;
+	font-size: 300%;
+	top: 3em;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	background: white;
+	opacity: 70%;
+}
+.configoverlay div {
+	font-size: 33%;
+	position: relative;
+	left: 50%;
+	margin-left: -25em;
+	width: 50em;
+}
