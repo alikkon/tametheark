@@ -5,4 +5,5 @@ $scriptpath = '/';
 $maintintervals = 5;
 $nohup = '/bin/nohup';
 $nice = '/bin/nice';
+$rsync = '/bin/rsync';
 ?>

@@ -132,6 +132,8 @@
     if ($cluster != '') {
       print "<div class='incluster'>\n";
       print "<a href='#'><h2>$cluster</h2></a>\n";
+    } else {
+      print "<div class='incluster'>\n";
     } 
     foreach ($arks as $name => $ark) {
       if (
@@ -157,9 +159,7 @@
         print "</div>\n";
       }
     }
-    if ($cluster != '') {
-      print "</div>\n";
-    }
+    print "</div>\n";
   }
 ?>
 <div id="messagebox" class="hiddenconfig">

@@ -22,8 +22,9 @@ I think that's it... if it doesn't work for you, let's determine why and add it 
 3. Place these files in your webroot.
 4. Install the pre-reqs.
 5. Configure your service (./arkconfs/[servicename] - rename ./arkconfs/example)
-6. Start Apache.
-7. Visit your web UI.
+6. Configure tametheark (./conf.php rename ./conf.example and edit)
+7. Start Apache.
+8. Visit your web UI.
 
 ## What works?
 

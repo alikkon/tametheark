@@ -131,8 +131,10 @@
             }
             if (file_exists($ark['arkpath'].'/'.$server.'/pid')) { unlink($ark['arkpath'].'/'.$server.'/pid'); }
             // Backup data.
-            file_put_contents($ark['arkpath'].'/'.$server.'/op',"command=update\nstage=backup");
-            exec("/bin/rsync -avHCxl ".$ark['arkpath']."/ShooterGame/Saved/$server ".$ark['arkpath'].'/'.$server."/Saved.bak");
+            if (isset($rsync)) {
+                file_put_contents($ark['arkpath'].'/'.$server.'/op',"command=update\nstage=backup");
+                exec("$rsync -avHCxl ".$ark['arkpath']."/ShooterGame/Saved/$server ".$ark['arkpath'].'/'.$server."/Saved.bak");
+            }
             // Patch.
             file_put_contents($ark['arkpath'].'/'.$server.'/op',"command=update\nstage=patch");
             updateArk($ark,$server);
@@ -172,8 +174,10 @@
             }
             if (file_exists($ark['arkpath'].'/'.$server.'/pid')) { unlink($ark['arkpath'].'/'.$server.'/pid'); }
             // Backup data.
-            file_put_contents($ark['arkpath'].'/'.$server.'/op',"command=maintenance\nstage=backup");
-            exec("/bin/rsync -avHCxl ".$ark['arkpath']."/ShooterGame/Saved/$server ".$ark['arkpath'].'/'.$server."/Saved.bak");
+            if (isset($rsync)) {
+                file_put_contents($ark['arkpath'].'/'.$server.'/op',"command=maintenance\nstage=backup");
+                exec("$rsync -avHCxl ".$ark['arkpath']."/ShooterGame/Saved/$server ".$ark['arkpath'].'/'.$server."/Saved.bak");
+            }
             // Patch.
             file_put_contents($ark['arkpath'].'/'.$server.'/op',"command=maintenance\nstage=patch");
             updateArk($ark,$server);
