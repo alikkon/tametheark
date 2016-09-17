@@ -14,12 +14,19 @@
         $command = $_POST['command'];
         $server = $_POST['server'];
     }
+
     $ark = getConf($server);
+
+    if (!$ark) { sendOutput(array('error' => 'Unable to load arkconf '.$server.'. Check your configuration and try again.')); exit; }
+    if (!file_exists($ark['arkpath']."/$server")) {
+        mkdir($ark['arkpath']."/$server");
+    }
 
     if ($command == 'getconf') {
         print json_encode($ark);
         exit;
     }
+
     $ark['rcon'] = new SourceQuery();
     try
     {
@@ -184,6 +191,9 @@
     // Check to see if we're in the middle of an operation.
     function opCheck($ark,$instance) {
         $path = $ark['arkpath'];
+        if (!file_exists("$path/$instance")) {
+            mkdir("$path/$instance");
+        }
         if (file_exists("$path/$instance/op")) {
             $opin = file($path.'/'.$instance.'/op');
             $currop = '';
@@ -208,7 +218,7 @@
         chdir($ark['arkpath'].'/ShooterGame/Binaries/Linux');
         $opts = buildOpts($ark);
         // Spawn process.
-        exec("/bin/nohup /bin/nice ./ShooterGameServer ".($ark['map'] ? $ark['map'] : 'TheIsland')."$opts?AltSaveDirectoryName=$server?listen".
+        exec("$nohup $nice ./ShooterGameServer ".($ark['map'] ? $ark['map'] : 'TheIsland')."$opts?AltSaveDirectoryName=$server?listen".
         ($ark['clusterid'] ? ' -NoTransferFromFiltering -clusterid='.$ark['clusterid'] : '').
         " -server -log > ".$ark['arkpath']."/".$server."/out 2>&1 & echo $! > ".$ark['arkpath']."/".$server."/pid");
         // Get PID - we'll use this to determine if the process is still running throughout startup.
@@ -231,6 +241,10 @@
             }
             sleep(10);
         }
+	if (!$pid) {
+            file_put_contents($ark['arkpath'].'/'.$server.'/op', "command=There was an error starting Ark. Check your nohup settings in conf.php");
+            exit;
+	}
     }
 
     function endArk ( $ark, $server ) {

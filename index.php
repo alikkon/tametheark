@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <?php
+  if (!file_exists('conf.php')) { print "Create conf.php before running this script."; }
   include('conf.php');
 ?>
 <html>

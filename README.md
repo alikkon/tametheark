@@ -33,7 +33,7 @@ Some things!
 2. Shut your server down with Shutdown.
 3. Start it up with Startup.
 4. Update your server (shutdown | update | startup)
-5. Maintenance is broken. Don't try to use it for now.
+5. Maintenance is working, assuming your conf.php is set up correctly.
 6. Restart your server if something seems wrong.
 7. Clear Op resets the operation flag for your ark server in case another operation gets hung up.
 
@@ -42,7 +42,6 @@ Some things!
 Lots of things!
 * A real authentication system of some sort... this needs to happen. In the meantime, use htpasswd or a similar tool
 * Access control, so you can grant control over individual servers instead of all of them.
-* Maintenance needs some love. The maintenance option should send messages to your server before running shutdown | update | startup on it, giving players 5 minutes of warning before your server goes down.
 * Web based configuration of services.
 * UI Clustering (one UI to rule multiple TameTheArk UIs)
 

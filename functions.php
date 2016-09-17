@@ -5,7 +5,7 @@ function getAllConfs() {
   $arks = array();
   $dh = opendir($arkconfs);
   while ($file = readdir($dh)) {
-    if (substr($file,0,1) != '.') {
+    if ((substr($file,0,1) != '.') && ($file != 'example')) {
       $arks[$file] = getConf( $file );
     }
   }
