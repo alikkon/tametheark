@@ -14,7 +14,7 @@ function getAllConfs() {
 
 function getConf( $thisservice ) {
   $arkconfs = './arkconfs/';
-  if (!preg_match('/^[a-zA-Z0-9]+$/',$thisservice)) { return '0'; }
+  if (!preg_match('/^[a-zA-Z0-9-_]+$/',$thisservice)) { return '0'; }
   if (file_exists($arkconfs.$thisservice)) {
     $ark = array();
     $contents = file($arkconfs.$thisservice, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
