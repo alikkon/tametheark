@@ -1,6 +1,7 @@
 <?php
     define('STYPE_STATUS','1');
     define('STYPE_CODE','0');
+    define('STYPE_BOTH','2');
     define('SRC_ALIVE','0');
     define('SRC_DEAD','1');
     define('SRC_DEGRADED','2');
@@ -221,10 +222,12 @@
         // Build options.
         chdir($ark['arkpath'].'/ShooterGame/Binaries/Linux');
         $opts = buildOpts($ark);
-        // Spawn process.
-        exec("$nohup $nice ./ShooterGameServer ".($ark['map'] ? $ark['map'] : 'TheIsland')."$opts?AltSaveDirectoryName=$server?listen".
+        $cmd="$nohup $nice ./ShooterGameServer ".($ark['map'] ? $ark['map'] : 'TheIsland')."$opts?AltSaveDirectoryName=$server?listen".
         ($ark['clusterid'] ? ' -NoTransferFromFiltering -clusterid='.$ark['clusterid'] : '').
-        " -server -log > ".$ark['arkpath']."/".$server."/out 2>&1 & echo $! > ".$ark['arkpath']."/".$server."/pid");
+        " -server -log > ".$ark['arkpath']."/".$server."/out 2>&1 & echo $! > ".$ark['arkpath']."/".$server."/pid";
+        file_put_contents($ark['arkpath'].'/'.$server.'/startCmd',$cmd);
+        // Spawn process.
+        exec($cmd);
         // Get PID - we'll use this to determine if the process is still running throughout startup.
         $pid = rtrim(file_get_contents($ark['arkpath'].'/'.$server.'/pid'));
         $res = 0;
@@ -335,6 +338,8 @@
             return $status;
         } elseif ($responsetype == STYPE_CODE) {
             return $src;
+        } elseif ($resposnetype == STYPE_BOTH) {
+            return array(STYPE_CODE => $src, STYPE_STATUS => $status);
         }
     }
 
