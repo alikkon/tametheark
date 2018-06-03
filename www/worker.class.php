@@ -26,9 +26,6 @@
                 $this->sendOutput(array('error' => 'Unable to load arkconf '.$server.'. Check your configuration and try again.'));
                 return 0;
             }
-            if (!file_exists($this->conf['mypath']."/".$this->server)) {
-                $this->phprun(array("mkdir",$this->conf['mypath'].'/'.$this->server));
-            }
             $this->rcon = new SourceQuery();
             try {
                 $this->rcon->Connect('localhost', $this->conf['rconport'], 1, SourceQuery::SOURCE);
@@ -46,6 +43,14 @@
                 $this->rcon->Disconnect();
             }
         }
+
+        #function save () {
+        #    if (!file_exists($this->conf['mypath']."/".$this->server)) {
+        #        mkdir($this->conf['mypath'].'/'.$this->server);
+        #        chgrp($this->conf['mypath'].'/'.$this->server,$this->conf['steam_group']);
+        #        chmod($this->conf['mypath'].'/'.$this->server,770);
+        #    }
+        #}
 
         function waiting () {
             $this->refresh = 3000;

@@ -23,8 +23,9 @@ I think that's it... if it doesn't work for you, let's determine why and add it 
 4. Configure your service - $ttaroot/arks/[servicename]/conf - copy the example directory if needed.
 5. Configure tametheark ($ttaroot/conf/conf.php rename $ttaroot/conf/conf.example and edit)
 6. Configure your Apache Virtualhost to point to the $ttaroot/www directory. Set authentication up here.
-7. Start Apache.
-8. Visit your web UI.
+7. Set permissions on the $ttaroot/arks directory to 770 or 775.
+8. Start Apache.
+9. Visit your web UI.
 
 ## What works?
 
