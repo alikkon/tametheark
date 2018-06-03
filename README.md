@@ -17,12 +17,12 @@ I think that's it... if it doesn't work for you, let's determine why and add it 
 
 ## How do I use TameTheArk?
 
-1. Easy.
-2. Configure Apache to run as your steam/ark user.
-3. Place these files in your webroot.
-4. Install the pre-reqs.
-5. Configure your service (./arkconfs/[servicename] - rename ./arkconfs/example)
-6. Configure tametheark (./conf.php rename ./conf.example and edit)
+1. Install Ark, SteamCMD, PHP, and Apache on your Linux host.
+2. Copy the files from this directory into /opt/tametheark (or another accessible location)
+3. Configure sudoers. Example can be found in $ttaroot/res/sudoers.d.ark
+4. Configure your service - $ttaroot/arks/[servicename]/conf - copy the example directory if needed.
+5. Configure tametheark ($ttaroot/conf/conf.php rename $ttaroot/conf/conf.example and edit)
+6. Configure your Apache Virtualhost to point to the $ttaroot/www directory. Set authentication up here.
 7. Start Apache.
 8. Visit your web UI.
 

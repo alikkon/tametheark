@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <?php
-  if (!file_exists('conf.php')) { print "Create conf.php before running this script."; }
-  include('conf.php');
+  if (!file_exists('../conf/conf.php')) { print "Create conf.php before running this script."; }
+  $conf = parse_ini_file('../conf/conf.php');
 ?>
 <html>
 <head>
 <title>Tame The Ark</title>
-<link rel=stylesheet href="<?php print $scriptpath; ?>css/main.css">
-<script type="text/javascript" src="<?php print $scriptpath; ?>resources/jquery-2.2.0.min.js"></script>
+<link rel=stylesheet href="<?php print $conf['scriptpath']; ?>css/main.css">
+<script type="text/javascript" src="<?php print $conf['scriptpath']; ?>resources/jquery-2.2.0.min.js"></script>
 <script>
     if (!Date.now) {
         Date.now = function() { return new Date().getTime(); }
@@ -19,6 +19,9 @@
     var watchers = {};
     var trackers = {};
 
+    function ajaxRunClusterCommand( cluster, command, parameters) {
+    }
+
     function ajaxRunServerCommand ( server, command, parameters) {
         var domobj = $( '#status' + server );
         var reqData = {};
@@ -28,7 +31,7 @@
             reqData['parameters'] = parameters;
 	}
         $.ajax({
-            url: '//<?php print $_SERVER['SERVER_NAME'].$scriptpath; ?>worker.php',
+            url: '//<?php print $_SERVER['SERVER_NAME'].$conf['scriptpath']; ?>worker.php',
             dataType: 'json',
             data: reqData,
             method: 'post',
@@ -121,13 +124,32 @@
   addArkCluster($arks);
 
   function addArkCluster($arks, $cluster = '') {
-    $cmds = array('save' => array('title' => 'Save', 'help' => "Sends the 'Save' command"),
-                'shutdown' => array('title' => 'Shutdown', 'help' => 'Shuts down Ark'),
-                'startup' => array('title' => 'Startup', 'help' => 'Starts a stopped server'),
-                'update' => array('title' => 'Update', 'help' => "Stops, updates, restarts Ark"),
+    $solocmds = array(
+                'save' => array('title' => 'Save', 'help' => "Sends the 'Save' command"),
+                'shutdown' => array('title' => 'Shutdown', 'help' => 'Shuts down this Ark'),
+                'startup' => array('title' => 'Startup', 'help' => 'Starts this Ark'),
+                'update' => array('title' => 'Update', 'help' => "Stops, updates, restarts this Ark"),
                 'maintenance' => array('title' => 'Maintain', 'help' => "Like update, but with warning messages in-game"),
-                'restart' => array('title' => 'Restart', 'help' => "Stop and restart Ark"),
+                'restart' => array('title' => 'Restart', 'help' => "Stop and restart this Ark"),
                 'clearop' => array('title' => "Clear Op", 'help' => 'Clear the operation marker')
+               );
+    $sharedcmds = array(
+                'save' => array('title' => 'Save', 'help' => "Sends the 'Save' command"),
+                'shutdown' => array('title' => 'Shutdown', 'help' => 'Shuts down this Ark'),
+                'startup' => array('title' => 'Startup', 'help' => 'Starts this Ark'),
+                'update' => array('title' => 'Update', 'help' => "Stops, updates, restarts this Ark"),
+                'maintenance' => array('title' => 'Maintain', 'help' => "Like update, but with warning messages in-game"),
+                'restart' => array('title' => 'Restart', 'help' => "Stop and restart this Ark"),
+                'clearop' => array('title' => "Clear Op", 'help' => 'Clear the operation marker')
+               );
+    $clustercmds = array(
+                'save' => array('title' => 'Save', 'help' => "Sends the 'Save' command to all nodes in a cluster"),
+                'shutdown' => array('title' => 'Shutdown', 'help' => "Shuts down all Arks in this cluster"),
+                'startup' => array('title' => 'Startup', 'help' => "Starts up all Arks in this cluster"),
+                'update' => array('title' => 'Update', 'help' => "Updates the Ark software for this cluster"),
+                'maintenance' => array('title' => 'Maintain', 'help' => 'Sends in-game warning messages, shuts down all Arks in cluster, updates Ark software, then starts any Arks that were running when this command was initiated'),
+                'restart' => array('title' => 'Restart', 'help' => 'Restarts all running nodes in cluster'),
+                'clearop' => array('title' => 'Clear Op', 'help' => 'Clear the operation marker')
                );
     if ($cluster != '') {
       print "<div class='incluster'>\n";
@@ -143,21 +165,35 @@
         ($cluster == ''))
       ) {
         print "<div>\n";
-        print "<h3><span>$name</span></h3>\n";
+        print "<h3><a id=\"connect$name\" href=\"steam://connect/".$_SERVER['SERVER_NAME'].':'.$ark['queryport']."/".$ark['serverpassword']."\">Connect</a>\n";
+        print "<span>$name (".$ark['map'].")</span></h3>\n";
         print "<div id=\"status$name\"></div>\n";
         print "<script>";
         print "ajaxRunServerCommand('$name','status');";
         print "watchers['$name'] = setTimeout(ajaxRunServerCommand('$name','status'),15000);";
         print "</script>\n";
         print "<div>Commands: ";
-        foreach ($cmds as $cmd => $info) {
-          print "<a href=\"#\" onClick=\"javascript:ajaxRunServerCommand('$name','$cmd'); return 0;\" title=\"".$info['help']."\">".$info['title']."</a> ";
+        if ((!$cluster) or ($ark['clusterbinary'] == 0)) {
+          foreach ($solocmds as $cmd => $info) {
+            print "<a href=\"#\" onClick=\"javascript:ajaxRunServerCommand('$name','$cmd'); return 0;\" title=\"".$info['help']."\">".$info['title']."</a> ";
+          }
+        } else {
+          foreach ($sharedcmds as $cmd => $info) {
+            print "<a href=\"#\" onClick=\"javascript:ajaxRunServerCommand('$name','$cmd'); return 0;\" title=\"".$info['help']."\">".$info['title']."</a> ";
+          }
         }
         print "<a href=\"#\" title=\"send messages to servers\" onClick=\"showSendMessageDialog('$name');\">Message</a> ";
         print "<a href=\"#\" title=\"configure this server\" class=\"disabled\">Configure</a> ";
         print "</div>\n";
         print "</div>\n";
       }
+    }
+    if ($cluster != '') {
+      print "<div class='clustercmds'>Cluster Commands: ";
+      foreach ($clustercmds as $cmd => $info) {
+        print "<a href=\"#\" onClick=\"javascript:ajaxRunClusterCommand('$name','$cmd'); return 0;\" title=\"".$info['help']."\">".$info['title']."</a> ";
+      }
+      print "</div>";
     }
     print "</div>\n";
   }

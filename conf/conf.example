@@ -1,0 +1,9 @@
+mypath = '/opt/tametheark/arks'
+arkpath = '/home/steam/ArkServer'
+steampath = '/home/steam/steamcmd'
+scriptpath = '/'
+maintintervals = 15
+nohup = '/bin/nohup'
+nice = '/bin/nice'
+rsync = '/bin/rsync'
+sudo = '/bin/sudo -u steam -g apache'

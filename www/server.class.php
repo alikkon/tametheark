@@ -1,22 +1,75 @@
 <?php
-    define('STYPE_STATUS','1');
-    define('STYPE_CODE','0');
-    define('STYPE_BOTH','2');
-    define('SRC_ALIVE','0');
-    define('SRC_DEAD','1');
-    define('SRC_DEGRADED','2');
 
-    include('conf.php');
-    include('functions.php');
-    require('SourceQuery/SourceQuery.class.php');
-    if (!isset($_POST['server']) || !isset($_POST['command'])) {
-        print json_encode(array('error' => 'Malformed request: Missing parameter.')); exit;
-    } else {
-        $command = $_POST['command'];
-        $server = $_POST['server'];
+class ark {
+
+    public $arkname;
+    public $gameiniopts = array();
+    public $settingsiniopts = array();
+    public $arkpath = '/home/steam/ArkServer';
+    public $steampath = '/home/steam/steamcmd';
+    public $servername;
+    public $serverpassword;
+    public $adminpassword;
+    public $rconport = '3330';
+    public $queryport = '27015';
+    public $port = '7791';
+    public $map = 'TheIsland';
+    public $clusterid;
+    public $clusterbinary = false;
+    public $motd = 'This ark has been tamed.';
+    public $isNew = false;
+
+    function __construct( $service ) {
+        # Store the name and confdir passed to us.
+        $this->arkname = $service;
+        if (substr($confdir,strlen($confdir),1) != '/') { $confdir = $confdir.'/'; }
+        $this->confdir = $confdir
+        # Validate the name of the ark.
+        if (!preg_match('/^[a-zA-Z0-9-_]+$/',$service)) { throw new Exception('Ark conf name invalid.'); }
+        # Check for file existence.
+        if (file_exists($confdir.$service) else ) {
+            # Load the file into array.
+            $contents = file($service, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            # Go through each line and split them out.
+            foreach ($contents as $line) {
+                # Make sure the line is a key/value pair. Also make sure the line isn't commented.
+                if (preg_match('/.+=.+/',$line) && !preg_match('/^#.*/',$line)) {
+                    $kv = explode('=',$line);
+                    $key = array_shift($kv);
+                    $value = implode('=',$kv);
+                    if (strtolower($key) == 'arkpath') {
+                        $this->arkpath = $value;
+                    } elseif (strtolower($key) == 'steampath') {
+                        $this->steampath = $value;
+                    } elseif (strtolower($key) == 'servername') {
+                        $this->servername = $value;
+                    } elseif (strtolower($key) == 'serverpassword') {
+                        $this->serverpassword = $value;
+                    } elseif (strtolower($key) == 'adminpassword') {
+                        $this->adminpassword = $value;
+                    } elseif (strtolower($key) == 'rconport') {
+                        $this->rconport = $value;
+                    } elseif (strtolower($key) == 'queryport') {
+                        $this->queryport = $value;
+                    } elseif (strtolower($key) == 'map') {
+                        $this->map = $value;
+                    } elseif (strtolower($key) == 'clusterid') {
+                        $this->clusterid = $value;
+                    } elseif (strtolower($key) == 'clusterbinary') {
+                        $this->clusterbinary = $value;
+                    } elseif (!strpos($key,':')) {
+                        $sa = explode(':',$key);
+                        $key = array_shift($sa);
+                        $subkey = implode(':',$sa);
+                        if ($key == 'opts') {
+                            # Determine which array the option goes into and stuff it into the correct one.
+                        }
+                    }
+                }
+            }
+        } else { $this->isNew = true; }
+        return $this;
     }
-
-    $ark = getConf($server);
 
     if (!$ark) { sendOutput(array('error' => 'Unable to load arkconf '.$server.'. Check your configuration and try again.')); exit; }
     if (!file_exists($ark['arkpath']."/$server")) {
@@ -224,13 +277,14 @@
         $opts = buildOpts($ark);
         $cmd="$nohup $nice ./ShooterGameServer ".($ark['map'] ? $ark['map'] : 'TheIsland')."$opts?AltSaveDirectoryName=$server?listen".
         ($ark['clusterid'] ? ' -NoTransferFromFiltering -clusterid='.$ark['clusterid'] : '').
-        " -server -log > ".$ark['arkpath']."/".$server."/out 2>&1 & echo $! > ".$ark['arkpath']."/".$server."/pid";
+        " -server -servergamelog > ".$ark['arkpath']."/".$server."/out 2>&1 & echo $! > ".$ark['arkpath']."/".$server."/pid";
         file_put_contents($ark['arkpath'].'/'.$server.'/startCmd',$cmd);
         // Spawn process.
         exec($cmd);
         // Get PID - we'll use this to determine if the process is still running throughout startup.
         $pid = rtrim(file_get_contents($ark['arkpath'].'/'.$server.'/pid'));
         $res = 0;
+        file_put_contents($ark['arkpath'].'/'.$server.'/op', "command=Startup\nstage=Waiting for server to become responsive...");
         while ($res == 0) {
             try {
                 $ark['rcon'] = new SourceQuery();
@@ -240,7 +294,6 @@
                 $ark['rcon']->Disconnect();
                 $res = 1;
             } catch ( Exception $e ) {
-                file_put_contents($ark['arkpath'].'/'.$server.'/op', "command=Startup\nstage=Waiting for server to become responsive...");
             }
             if (!posix_kill($pid, 0)) {
                 file_put_contents($ark['arkpath'].'/'.$server.'/op', "command=There was an error starting Ark");

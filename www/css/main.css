@@ -75,3 +75,9 @@ a:link h2, a:visited h2, a:active h2, a h2, h2 {
 	margin-left: -25em;
 	width: 50em;
 }
+.clustercmds {
+	margin-top: 0.5em;
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+	background: #c2b280;
+}

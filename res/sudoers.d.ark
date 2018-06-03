@@ -1,0 +1,1 @@
+apache  ALL=(steam:apache)      NOPASSWD:/opt/tametheark/bin/wrapper.php
