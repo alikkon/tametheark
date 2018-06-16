@@ -1,6 +1,6 @@
 mypath = '/opt/tametheark/arks'
 arkpath = '/home/steam/ArkServer'
-steampath = '/home/steam/steamcmd'
+steampath = '/home/steam/steamcmd/steamcmd.sh'
 scriptpath = '/'
 maintintervals = 15
 nohup = '/bin/nohup'

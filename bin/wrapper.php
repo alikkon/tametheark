@@ -190,8 +190,7 @@
     }
     
     function updateArk( $ark, $server ) {
-        chdir($ark['steampath']);
-        exec("./steamcmd.sh +login anonymous +force_install_dir ".$ark['arkpath']." +app_update 376030 +quit    > ".$ark['mypath']."/".$server."/steam.out 2>&1", $result, $exit);
+        exec($ark['steampath'] . " +login anonymous +force_install_dir ".$ark['arkpath']." +app_update 376030 +quit    > ".$ark['mypath']."/".$server."/steam.out 2>&1", $result, $exit);
     }
     
     // Take the list of options and build them into a command string //
