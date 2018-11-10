@@ -37,6 +37,7 @@
             method: 'post',
             error: function(reqObj,errmsg) { console.log("Error",errmsg); domobj.html( errmsg ); },
             success: function(response) {
+                $( '#players' + server ).html('');
                 if (typeof(response['error']) != 'undefined') {
                     domobj.html( response['error'] );
                 } else if (response['success']) {
@@ -45,6 +46,9 @@
                         for (i = 0; i < response['success'][1].length; i++) {
                             domobj.html( domobj.html() + "<br>" + response['success'][1][i] );
                         }
+                    }
+                    if (typeof(response['players']) == 'string') {
+                        $( '#players' + server ).html( response['players'] );
                     }
                 } else {
                     domobj.innerHTML = 'got nothing back!';
@@ -168,6 +172,7 @@
         print "<h3><a id=\"connect$name\" href=\"steam://connect/".$_SERVER['SERVER_NAME'].':'.$ark['queryport']."/".$ark['serverpassword']."\">Connect</a>\n";
         print "<span>$name (".$ark['map'].")</span></h3>\n";
         print "<div id=\"status$name\"></div>\n";
+        print "<div id=\"players$name\"></div>\n";
         print "<script>";
         print "ajaxRunServerCommand('$name','status');";
         print "watchers['$name'] = setTimeout(ajaxRunServerCommand('$name','status'),15000);";

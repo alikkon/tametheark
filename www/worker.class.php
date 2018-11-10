@@ -18,6 +18,7 @@
         var $pid;
         var $op;
         var $stage;
+        var $players = array();
 
         function __construct ($server) {
             $this->server = $server;
@@ -25,6 +26,9 @@
             if (!$this->conf) {
                 $this->sendOutput(array('error' => 'Unable to load arkconf '.$server.'. Check your configuration and try again.'));
                 return 0;
+            }
+            if (!file_exists($this->conf['mypath']."/".$this->server)) {
+                $this->phprun(array("mkdir",$this->conf['mypath'].'/'.$this->server));
             }
             $this->rcon = new SourceQuery();
             try {
@@ -43,14 +47,6 @@
                 $this->rcon->Disconnect();
             }
         }
-
-        #function save () {
-        #    if (!file_exists($this->conf['mypath']."/".$this->server)) {
-        #        mkdir($this->conf['mypath'].'/'.$this->server);
-        #        chgrp($this->conf['mypath'].'/'.$this->server,$this->conf['steam_group']);
-        #        chmod($this->conf['mypath'].'/'.$this->server,770);
-        #    }
-        #}
 
         function waiting () {
             $this->refresh = 3000;
@@ -124,7 +120,13 @@
             $this->sendoutput();
         }
 
-        function message() {
+        function save() {
+            $this->saveWorld();
+            $this->waiting();
+            $this->sendoutput();
+        }
+
+        function saveWorld() {
             try {
                 $res = $this->rcon->Rcon('saveworld');
             } catch ( Exception $e ) {
@@ -132,7 +134,7 @@
                 $this->message = 'Failed to send command over rcon';
             }
             $this->status = 1;
-            $this->status = 'Saving the world!';
+            $this->message = 'Saving the world!';
             return True;
         }
     
@@ -144,6 +146,7 @@
             } else {
                 try {
                     $res = $this->rcon->Rcon('listplayers');
+                    $this->players = $res;
                 } catch (Exception $e) { $res = '';}
                 if ($res) {
                     $this->message = 'Ark is running';
@@ -151,7 +154,7 @@
                 } else {
                     if (file_exists($this->conf['arkpath'].'/'.$this->server.'/pid')) {
                         $pid = rtrim(file_get_contents($this->conf['arkpath'].'/'.$this->server.'/pid'));
-                        if (posix_kill($pid, 0)) {
+                        if (phprun_return(array('checkpid', $this->server)) == 1 ) {
                             $this->message = 'Ark is running but not responding.';
                             $this->status = $this::SRC_DEGRADED;
                         } else {
@@ -167,16 +170,6 @@
             return $this->status;
         }
 
-        // Sends the save command - unfortunately, Ark doesn't actually give any feedback on whether or not this is successful.
-        function saveWorld() {
-            try {
-                $res = $this->rcon->Rcon('saveworld');
-            } catch ( Exception $e ) {
-            }
-            $status = array('success' => array('Save command sent!'));
-            return 1;
-        }
-
         function sendOutput() {
             $message = array();
             $response = array();
@@ -190,6 +183,9 @@
             if ( $this->newcmd ) {
                 $message['overridecommand'] = $this->newcmd;
                 $message['newtimer'] = $this->refresh;
+            }
+            if ( $this->players ) {
+                $message['players'] = $this->players;
             }
             $tosend = json_encode($message);
             header('Connection: close');
@@ -211,12 +207,37 @@
                 }
                 if (isset($this->conf['sudo'])) {
                     $sudo = $this->conf['sudo'];
-                    exec( "$sudo ../bin/wrapper.php $execstring &");
+                    exec( "$sudo ../bin/wrapper.php $execstring >/tmp/out.txt &");
                 } else {
                     exec("../bin/wrapper.php $execstring &");
                 }
                 $this->message = 'Sent command: '.$parameters[0];
                 $this->status = 1;
+            } else {
+                return false;
+            }
+        }
+
+        function phprun_return($parameters) {
+            $validcommands = array('checkpid');
+            if (in_array($parameters[0], $validcommands)) {
+                $execstring = '';
+                foreach ($parameters as $p) {
+                    if (!$execstring) {
+                        $execstring = $p;
+                    } else {
+                        $execstring = "$execstring $p";
+                    }
+                }
+                if (isset($this->conf['sudo'])) {
+                    $sudo = $this->conf['sudo'];
+                    exec( "$sudo ../bin/wrapper.php $execstring", $output);
+                } else {
+                    exec("../bin/wrapper.php $execstring", $output);
+                }
+                $this->message = 'Sent command: '.$parameters[0];
+                $this->status = 1;
+                return $output;
             } else {
                 return false;
             }

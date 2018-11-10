@@ -101,6 +101,13 @@
         $res = $ark['rcon']->Rcon( 'SetMessageOfTheDay "'.$ark['motd'].'"' );
         unlink($ark['mypath']."/".$server."/steam.out");
         unlink($ark['mypath'].'/'.$server.'/op');
+    } elseif ($cmd == 'checkpid') {
+        $pid = rtrim(file_get_contents($ark['mypath'].'/'.$server.'/pid'));
+        if (posix_kill($pid, 0)) {
+            print 1;
+        } else {
+            print 0;
+        }
     }
 
     $ark['rcon']->Disconnect();

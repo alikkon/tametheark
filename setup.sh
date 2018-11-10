@@ -141,7 +141,15 @@ if [[ ! -d $mypath ]]; then
         if [[ ! -d $mypath ]]; then echo "Failed to create path '$mypath'"; exit; fi
     fi
     chown -R $arkuser:$apachegroup $mypath
-    chmod 0770 $mypath
+    chmod 0770 $mypath/arks
+    chmod 0770 $mypath/arks/*
+    chmod 0660 $mypath/arks/*/*
+    chmod 0755 $mypath/bin
+    chmod 0755 $mypath/bin/*
+    chmod 0755 $mypath/www
+    chmod 0645 $mypath/www/*
+    chmod 0750 $mypaath/conf
+    chmod 0750 $mypath/conf/*
 fi
 
 # GET STEAMCMD LOCATION
@@ -300,7 +308,8 @@ EOF
 if [[ $usesudo == 'y' ]]; then
     echo "sudo = '$sudopath -u $arkuser -g $apachegroup'" >> $mylocation/conf/conf.php
 fi
-chown $apacheuser:$apachegroup $mylocation/conf/conf.php
+chown $steam:$apachegroup $mylocation/conf/conf.php
+chmod 640 $mylocation/conf/conf.php
 
 echo "Created conf with contents:"
 cat $mylocation/conf/conf.php

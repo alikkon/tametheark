@@ -29,5 +29,7 @@
         $ark->update();
     } elseif ($command == 'maintain') {
         $ark->update(True);
+    } elseif ($command == 'save') {
+        $ark->save();
     }
 ?>
