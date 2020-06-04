@@ -1,13 +1,14 @@
 <?php
 
-    include('functions.php');
-    require('SourceQuery/SourceQuery.class.php');
+    include_once('functions.php');
+    require_once('SourceQuery/SourceQuery.class.php');
 
     class ark_worker {
         const SRC_ALIVE = 1;
         const SRC_DEAD = 0;
         const SRC_DEGRADED = -1;
         var $server;
+        var $version;
         var $message;
         var $extra;
         var $refresh = 15000;
@@ -19,8 +20,9 @@
         var $op;
         var $stage;
         var $players = array();
+        var $ischild = False;
 
-        function __construct ($server) {
+        function __construct ($server, $ischild = False) {
             $this->server = $server;
             $this->conf = getConf($server);
             if (!$this->conf) {
@@ -39,6 +41,7 @@
             if (! $this->op) {
                 $this->getStatus();
             }
+            if ($ischild) { $this->ischild = $ischild; }
             return $this;
         }
 
@@ -61,7 +64,7 @@
                 $this->waiting();
             }
             $this->opCheck();
-            $this->sendOutput();
+            if (!$this->ischild) { $this->sendOutput(); }
         }
 
         function opCheck() {
@@ -95,13 +98,13 @@
         function start() {
             $this->phprun(array('start',$this->server));
             $this->waiting();
-            $this->sendOutput();
+            if (!$this->ischild) { $this->sendOutput(); }
         }
 
         function stop() {
             $this->phprun(array('stop',$this->server));
             $this->waiting();
-            $this->sendoutput();
+            if (!$this->ischild) { $this->sendOutput(); }
         }
     
         function update($maintainence = False) {
@@ -111,19 +114,19 @@
                 $this->phprun(array('update',$this->server));
             }
             $this->waiting();
-            $this->sendoutput();
+            if (!$this->ischild) { $this->sendOutput(); }
         }
 
         function restart() {
             $this->phprun(array('restart',$this->server));
             $this->waiting();
-            $this->sendoutput();
+            if (!$this->ischild) { $this->sendOutput(); }
         }
 
         function save() {
             $this->saveWorld();
             $this->waiting();
-            $this->sendoutput();
+            if (!$this->ischild) { $this->sendOutput(); }
         }
 
         function saveWorld() {
@@ -167,6 +170,9 @@
                     }
                 }
             }
+            if (file_exists($this->conf['mypath'].'/'.$this->server.'/version.txt')) {
+                $this->version = file_get_contents($this->conf['mypath'].'/'.$this->server.'/version.txt');
+            }
             return $this->status;
         }
 
@@ -186,6 +192,9 @@
             }
             if ( $this->players ) {
                 $message['players'] = $this->players;
+            }
+            if ( $this->version ) {
+                $message['version'] = $this->version;
             }
             $tosend = json_encode($message);
             header('Connection: close');

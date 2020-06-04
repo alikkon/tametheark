@@ -46,6 +46,7 @@ a:link h2, a:visited h2, a:active h2, a h2, h2 {
 
 .incluster {
 	margin-top: 1em;
+        padding-bottom: 1em; 
 	border: 1px solid black;
 }
 
@@ -80,4 +81,14 @@ a:link h2, a:visited h2, a:active h2, a h2, h2 {
 	padding-top: 0.5em;
 	padding-bottom: 0.5em;
 	background: #c2b280;
+}
+
+.indicatorlight {
+	width: 1em;
+	height: 1em;
+        margin-right: 0.5em;
+}
+
+h3 {
+	margin-bottom: 0;
 }

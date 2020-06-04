@@ -1,50 +1,14 @@
 <?php
 
-session_start();
+#$path_extra = dirname(dirname(dirname(__FILE__)));
+#$path = ini_get('include_path');
+#$path = $path_extra . PATH_SEPARATOR . $path;
+#ini_set('include_path', $path);
 
-function getAllConfs() {
-  $conf = parse_ini_file('../conf/conf.php');
-  $arkconfs = $conf['mypath'];
-  $arks = array();
-  $dh = opendir($arkconfs);
-  while ($file = readdir($dh)) {
-    if ((substr($file,0,1) != '.') && ($file != 'example') && is_dir($arkconfs.'/'.$file)) {
-      $arks[$file] = getConf( $file );
-    }
-  }
-  return $arks;
-}
-
-function getConf( $thisservice ) {
-  $conf = parse_ini_file('../conf/conf.php');
-  $arkconfs = $conf['mypath'];
-  if (!preg_match('/^[a-zA-Z0-9-_]+$/',$thisservice)) { return '0'; }
-  if (file_exists($arkconfs.'/'.$thisservice.'/conf')) {
-    $ark = $conf;
-    $contents = file($arkconfs.'/'.$thisservice.'/conf', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($contents as $line) {
-      if (preg_match('/.+=.+/',$line) && !preg_match('/^#.*/',$line)) {
-        $kv = explode('=',$line,2);
-        if (!strpos($kv[0],':')) {
-          $ark[$kv[0]] = $kv[1];
-        } else {
-          $sa = explode(':',$kv[0]);
-          if (!isset($ark[$sa[0]])) {
-            $ark[$sa[0]] = array();
-          }
-          if (!isset($ark[$sa[0]][$sa[1]])) {
-            $ark[$sa[0]][$sa[1]] = $kv[1];
-          } elseif (is_array($ark[$sa[0]][$sa[1]])) {
-            $ark[$sa[0]][$sa[1]][] = $kv[1];
-          } else {
-            $ark[$sa[0]][$sa[1]] = array($ark[$sa[0]][$sa[1]]);
-            $ark[$sa[0]][$sa[1]][] = $kv[1];
-          }
-        }
-      }
-    }
-    return $ark;
-  }
+function displayError($message) {
+    $error = $message;
+    include 'index.php';
+    exit(0);
 }
 
 function doIncludes() {
@@ -71,6 +35,13 @@ function doIncludes() {
 }
 
 doIncludes();
+
+global $pape_policy_uris;
+$pape_policy_uris = [
+    PAPE_AUTH_MULTI_FACTOR_PHYSICAL,
+    PAPE_AUTH_MULTI_FACTOR,
+    PAPE_AUTH_PHISHING_RESISTANT,
+];
 
 function &getStore() {
     /**
@@ -105,7 +76,7 @@ function &getStore() {
             " Please check the effective permissions.";
         exit(0);
     }
-        $r = new Auth_OpenID_FileStore($store_path);
+	$r = new Auth_OpenID_FileStore($store_path);
 
     return $r;
 }
@@ -116,7 +87,7 @@ function &getConsumer() {
      * earlier.
      */
     $store = getStore();
-        $r = new Auth_OpenID_Consumer($store);
+	$r = new Auth_OpenID_Consumer($store);
     return $r;
 }
 

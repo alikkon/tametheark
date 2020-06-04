@@ -1,6 +1,7 @@
 # TameTheArk management interface.
 
 This package uses xPaw's PHP-Source-Query library, which can be found here: https://github.com/xPaw/PHP-Source-Query/tree/master/SourceQuery and is included for simplicity's sake.
+We also use the openid php-openid library, which can be found here: https://github.com/openid/php-openid and is included for simplicity's sake. This library uses the Apache 2.0 License.
 
 ## What is TameTheArk
 
@@ -19,13 +20,11 @@ I think that's it... if it doesn't work for you, let's determine why and add it 
 
 1. Install Ark, SteamCMD, PHP, and Apache on your Linux host.
 2. Copy the files from this directory into /opt/tametheark (or another accessible location)
-3. Configure sudoers. Example can be found in $ttaroot/res/sudoers.d.ark
-4. Configure your service - $ttaroot/arks/[servicename]/conf - copy the example directory if needed.
-5. Configure tametheark ($ttaroot/conf/conf.php rename $ttaroot/conf/conf.example and edit)
-6. Configure your Apache Virtualhost to point to the $ttaroot/www directory. Set authentication up here.
-7. Set permissions on the $ttaroot/arks directory to 770 or 775.
-8. Start Apache.
-9. Visit your web UI.
+3. Configure your service - $ttaroot/arks/[servicename]/conf - copy the example directory if needed.
+4. Configure tametheark ($ttaroot/conf/conf.php rename $ttaroot/conf/conf.example and edit)
+5. Configure your Apache Virtualhost to point to the $ttaroot/www directory. Set authentication up here.
+6. Start Apache.
+7. Visit your web UI.
 
 ## What works?
 

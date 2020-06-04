@@ -1,9 +1,13 @@
 mypath = '/opt/tametheark/arks'
 arkpath = '/home/steam/ArkServer'
 steampath = '/home/steam/steamcmd/steamcmd.sh'
+urls[] = '127.0.0.1'
 scriptpath = '/'
 maintintervals = 15
 nohup = '/bin/nohup'
 nice = '/bin/nice'
 rsync = '/bin/rsync'
 sudo = '/bin/sudo -u steam -g apache'
+steam_ids[] = first_numeric_steam_id
+...
+steam_ids[] = last_numeric_steam_id

@@ -2,6 +2,9 @@
 <?php
   if (!file_exists('../conf/conf.php')) { print "Create conf.php before running this script."; }
   $conf = parse_ini_file('../conf/conf.php');
+  $conf['steam_ids'];
+  include('functions.php');
+  if ($_GET['act'] == 'logout') { $_SESSION = []; }
 ?>
 <html>
 <head>
@@ -18,18 +21,147 @@
 
     var watchers = {};
     var trackers = {};
+    var clusters = {};
+    var waiting = {};
 
     function ajaxRunClusterCommand( cluster, command, parameters) {
+        var domobj = $( '#clusterstatus' + cluster );
+        var reqData = {};
+        reqData['cluster'] = cluster;
+        reqData['command'] = 'cluster_' + command;
+        if (parameters) {
+            reqData['parameters'] = parameters;
+        }
+        if ((waiting[cluster]) && (command != 'clearop')) {
+            alert('You already have a clusterwide command running. Please wait for it to complete before requesting an additional command.');
+            return false;
+        }
+        var servers = [];
+        var cancelstate = false;
+        $.each(clusters[cluster], function(key, server) {
+            if ((command != 'clearop') && (command != 'save')) {
+                if (!waiting[server]) {
+                    waiting[server] = command;
+                } else if ((waiting[server]) && (waiting[server] != command)) {
+                    if (!cancelstate) {
+                        alert('The server ' + server + ' in this cluster is currently waiting on a command. Please either clear op, or wait for that command to finish, then try again.');
+                    }
+                    cancelstate = true;
+                } else {
+                    console.log('unknown error determining wait state for server' + server);
+                }
+            }
+        });
+        if (cancelstate) {
+            $.each(clusters[cluster], function(key, server) {
+                if ((waiting[server]) && (waiting[server] == command)) {
+                    waiting[server] = 0;
+                }
+            });
+        }
+        if ((command != 'clearop') && (command != 'save')) { waiting[cluster] = command; }
+        $.ajax({
+            url: '//<?php print $_SERVER['SERVER_NAME'].$conf['scriptpath']; ?>cluster_worker.php',
+            dataType: 'json',
+            data: reqData,
+            method: 'post',
+            error: function(reqObj,errmsg) { console.log("Error",errmsg); domobj.html( errmsg ); },
+            success: function(response) {
+                if (typeof(response['error']) != 'undefined') {
+                    domobj.html( response['error'] );
+                } else if (response['success']) {
+                    domobj.html( response['success'][0] );
+                    if (response['success'].length > 1) {
+                        for (i = 0; i < response['success'][1].length; i++) {
+                            domobj.html( domobj.html() + "<br>" + response['success'][1][i] );
+                        }
+                    }
+                    console.log(response);
+                } else {
+                    domobj.innerHTML = 'got nothing back!';
+                }
+            }
+        })
+        return false;
     }
+
+    /*
+    function ajaxRunClusterCommand( cluster, command, parameters) {
+        if ((waiting[cluster]) && (command != 'clearop')) {
+            alert('You already have a clusterwide command running. Please wait for it to complete before requesting an additional command.');
+            return false;
+        }
+        var servers = [];
+        var cancelstate = false;
+        $.each(clusters[cluster], function(key, server) {
+            if (command != 'clearop') {
+                if (!waiting[server]) {
+                    waiting[server] = command;
+                } else if ((waiting[server]) && (waiting[server] != command)) {
+                    if (!cancelstate) {
+                        alert('The server ' + server + ' in this cluster is currently waiting on a command. Please either clear op, or wait for that command to finish, then try again.');
+                    }
+                    cancelstate = true;
+                } else {
+                    console.log('unknown error determining wait state for server' + server);
+                }
+            } else {
+                waiting[server] = command;
+            }
+        });
+        if (cancelstate) {
+            $.each(clusters[cluster], function(key, server) {
+                if ((waiting[server]) && (waiting[server] == command)) {
+                    waiting[server] = 0;
+                }
+            });
+        }
+        waiting[cluster] = command;
+        waitThenRunServerCommand(cluster, command, parameters);
+        return false;
+    }
+
+    function waitThenRunServerCommand( cluster, command, parameters ) {
+        var servers = [];
+        var hostisactive = false;
+        $.each(clusters[cluster], function(key, server) {
+            if (waiting[server] == command) {
+                servers.push(server);
+            }
+            if (waiting[server] == 'active') { hostisactive = true; }
+        });
+        $('#clusterstatus' + cluster).text('Waiting on command ' + command + '. remaining servers: ' + servers.join(','));
+        if ((servers.length) && (!hostisactive)) {
+            server = servers.shift();
+            waiting[server] = 'active';
+            ajaxRunServerCommand(server, command, parameters);
+            setTimeout(function() { waitThenRunServerCommand(cluster, command, parameters); }, 500); 
+        } else if ((waiting[cluster]) && (waiting[cluster] != 'clearop')) {
+            setTimeout(function () { waitThenRunServerCommand(cluster, command, parameters); }, 15000);
+        } else if (waiting[cluster]) {
+            setTimeout(function() { waitThenRunServerCommand(cluster, command, parameters); }, 500);
+        } else {
+            $('#clusterstatus' + cluster).text('');
+            waiting[cluster] = 0;
+        }
+
+        return false;
+    }
+    */
 
     function ajaxRunServerCommand ( server, command, parameters) {
         var domobj = $( '#status' + server );
+        var indicatorobj = $('#statusindicator' + server);
         var reqData = {};
+        var incluster = $(domobj).closest('.incluster').children('a').text()
         reqData['server'] = server;
         reqData['command'] = command;
 	if (parameters) {
             reqData['parameters'] = parameters;
 	}
+        if ((waiting[server] == 0) && (command != 'status')) {
+            waiting[server] = 'active';
+        }
         $.ajax({
             url: '//<?php print $_SERVER['SERVER_NAME'].$conf['scriptpath']; ?>worker.php',
             dataType: 'json',
@@ -50,8 +182,25 @@
                     if (typeof(response['players']) == 'string') {
                         $( '#players' + server ).html( response['players'] );
                     }
+			console.log(response);
+                    if ((response['success'][0] == 'Ark is running') && (typeof(response['version']) == 'string')) {
+                        $( '#version' + server).html( ' Version ' + response['version'] );
+                    }
                 } else {
                     domobj.innerHTML = 'got nothing back!';
+                }
+                if (domobj.text().includes('Ark is running')) {
+                    indicatorobj.attr('src','resources/GreenLight.png');
+                    if (waiting[server] == 'active') {
+                        waiting[server] = 0;
+                    }
+                } else if (domobj.text().includes('Ark is not running')) {
+                    indicatorobj.attr('src','resources/RedLight.png');
+                    if (waiting[server] == 'active') {
+                        waiting[server] = 0;
+                    }
+                } else {
+                    indicatorobj.attr('src','resources/YellowLight.png');
                 }
                 if (typeof(response['overridecommand']) != 'undefined') {
                     if (typeof(watchers[server] != 'undefined')) {
@@ -64,9 +213,25 @@
                     watchers[server] = setTimeout(function() { ajaxRunServerCommand(server,'status') },15000);
                     trackers[server] = timestamp();
                 }
+                if (incluster) {
+                    clusterisactive = false;
+                    $.each(clusters[incluster], function(key, server) {
+                        if (waiting[server]) {
+                            if (!waiting[incluster]) {
+                                waiting[incluster] = waiting[server];
+                                $('#clusterstatus' + incluster).text('Waiting on command ' + command + ' for server ' + server);
+                            }
+                            clusterisactive = true;
+                        }
+                    });
+                    if (!clusterisactive) {
+                        $('#clusterstatus' + incluster).text('');
+                        waiting[incluster] = false;
+                    }
+                }
             }
         })
-        return 0;
+        return false;
     }
 
     function watchTheWatchers() {
@@ -88,7 +253,7 @@
         $( '#arkmsgdisplay' ).html( server );
         $( '#messagebox' ).removeClass('hiddenconfig');
 	$( '#messagebox' ).addClass('configoverlay');
-        return 0;
+        return false;
     }
 
     function sendMessageToArk() {
@@ -98,7 +263,7 @@
         $( '#arkmsgdisplay' ).html( '' );
         $( '#messagebox' ).addClass('hiddenconfig');
         $( '#messagebox' ).removeClass('configoverlay');
-        return 0;
+        return false;
     }
 
     function cancelMessageToArk() {
@@ -107,14 +272,24 @@
         $( '#arkmsgdisplay' ).html( '' );
         $( '#messagebox' ).addClass('hiddenconfig');
         $( '#messagebox' ).removeClass('configoverlay');
-        return 0;
+        return false;
     }
 </script>
 </head>
 <body>
 <h1>Tame The Ark</h1>
 <?php
-  include('functions.php');
+  if ($conf['steam_ids']) {
+    if ((!$_SESSION['steam_id']) || (!in_array($_SESSION['steam_id'],$conf['steam_ids']))) {
+      if ($_SESSION['steam_id']) { print "<div>User ".$_SESSION['steam_id']." not allowed.</div>"; }
+      print "<a href='/try_auth.php?openid_identifier=https://steamcommunity.com/openid/'>Login with Steam</a>";
+      print "</body>\n";
+      print "</html>";
+      exit;
+    } else {
+      print "<div><a href='/?act=logout'>Logout</a></div>";
+    }
+  }
   $arks = getAllConfs();
   $clusters = array();
 
@@ -123,7 +298,7 @@
       array_push($clusters,$ark['clusterid']);
     }
   }
-  
+ 
   if ($clusters) { sort($clusters); foreach ($clusters as $cluster) { addArkCluster($arks, $cluster); } }
   addArkCluster($arks);
 
@@ -157,11 +332,16 @@
                );
     if ($cluster != '') {
       print "<div class='incluster'>\n";
+      print "<script>clusters['$cluster'] = []; waiting['$cluster'] = 0;</script>";
       print "<a href='#'><h2>$cluster</h2></a>\n";
+      print "<div id='clusterstatus$cluster'></div>";
     } else {
-      print "<div class='incluster'>\n";
-    } 
+      print "<div>\n";
+    }
     foreach ($arks as $name => $ark) {
+      if ($cluster != '') {
+        print "<script>clusters['$cluster'].push('$name')</script>";
+      }
       if (
         (isset($ark['clusterid']) &&
         ($ark['clusterid'] == $cluster)) ||
@@ -169,9 +349,23 @@
         ($cluster == ''))
       ) {
         print "<div>\n";
-        print "<h3><a id=\"connect$name\" href=\"steam://connect/".$_SERVER['SERVER_NAME'].':'.$ark['queryport']."/".$ark['serverpassword']."\">Connect</a>\n";
-        print "<span>$name (".$ark['map'].")</span></h3>\n";
-        print "<div id=\"status$name\"></div>\n";
+        print "<h3>";
+        print "<img class='indicatorlight' id='statusindicator$name'>";
+        print "<span>$name (".$ark['map'].")</span><span id=\"version$name\"></span></h3>";
+        print "<div>";
+        if (isset($ark['urls'])) {
+          if (is_array($ark['urls'])) {
+            foreach ($ark['urls'] as $url) {
+              print "<a class=\"connect\" href=\"steam://connect/".$url.':'.$ark['queryport']."/".$ark['serverpassword']."\">Connect (".$url.")</a>\n";
+            }
+          } else {
+            print "<a class=\"connect\" id=\"connect$name\" href=\"steam://connect/".$ark['url'].':'.$ark['queryport']."/".$ark['serverpassword']."\">Connect</a>\n";
+          }
+        } else {
+          print "<a class=\"connect\" id=\"connect$name\" href=\"steam://connect/".$_SERVER['SERVER_NAME'].':'.$ark['queryport']."/".$ark['serverpassword']."\">Connect</a>\n";
+        }
+        print "</div>\n";
+        print "<div class='serverstatus' id=\"status$name\"></div>\n";
         print "<div id=\"players$name\"></div>\n";
         print "<script>";
         print "ajaxRunServerCommand('$name','status');";
@@ -180,25 +374,27 @@
         print "<div>Commands: ";
         if ((!$cluster) or ($ark['clusterbinary'] == 0)) {
           foreach ($solocmds as $cmd => $info) {
-            print "<a href=\"#\" onClick=\"javascript:ajaxRunServerCommand('$name','$cmd'); return 0;\" title=\"".$info['help']."\">".$info['title']."</a> ";
+            print "<a href=\"#\" onClick=\"javascript:ajaxRunServerCommand('$name','$cmd'); return false;\" title=\"".$info['help']."\">".$info['title']."</a> ";
           }
         } else {
           foreach ($sharedcmds as $cmd => $info) {
-            print "<a href=\"#\" onClick=\"javascript:ajaxRunServerCommand('$name','$cmd'); return 0;\" title=\"".$info['help']."\">".$info['title']."</a> ";
+            print "<a href=\"#\" onClick=\"javascript:ajaxRunServerCommand('$name','$cmd'); return false;\" title=\"".$info['help']."\">".$info['title']."</a> ";
           }
         }
         print "<a href=\"#\" title=\"send messages to servers\" onClick=\"showSendMessageDialog('$name');\">Message</a> ";
-        print "<a href=\"#\" title=\"configure this server\" class=\"disabled\">Configure</a> ";
+        #print "<a href=\"#\" title=\"configure this server\" class=\"disabled\">Configure</a> ";
         print "</div>\n";
         print "</div>\n";
       }
     }
     if ($cluster != '') {
+      /*
       print "<div class='clustercmds'>Cluster Commands: ";
       foreach ($clustercmds as $cmd => $info) {
-        print "<a href=\"#\" onClick=\"javascript:ajaxRunClusterCommand('$name','$cmd'); return 0;\" title=\"".$info['help']."\">".$info['title']."</a> ";
+        print "<a href=\"#\" onClick=\"javascript:ajaxRunClusterCommand('$cluster','$cmd'); return false;\" title=\"".$info['help']."\">".$info['title']."</a> ";
       }
       print "</div>";
+      */
     }
     print "</div>\n";
   }

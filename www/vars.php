@@ -14,7 +14,7 @@ $options = array(
 	'DisableStructureDecayPvE' =>  array( 'type' => 'bool', 'default' => 'false' ),
 	'DisableDinoDecayPvE' =>  array( 'type' => 'bool', 'default' => 'false' ),
 	'AllowFlyerCarryPvE' =>  array( 'type' => 'bool', 'default' => 'false' ),
-	'MaxStructuresInRange' => array( 'type' => 'int' ),
+	'TheMaxStructuresInRange' => array( 'type' => 'int', 'default' => 10500 ),
 	'MaxPlayers' => array( 'type' => 'int', 'default' => 200 ),
 	'DifficultyOffset' => array( 'type' => 'float', 'max' => 1, 'default' => '0.20' ),
 	'ServerPassword' => array( 'type' => 'string', 'required' => true ),
