@@ -37,11 +37,11 @@ Some things!
 5. Maintenance is working, assuming your conf.php is set up correctly.
 6. Restart your server if something seems wrong.
 7. Clear Op resets the operation flag for your ark server in case another operation gets hung up.
+8. Authentication - if you configure it!
 
 ## Okay, so what do you have planned for the future?
 
 Lots of things!
-* A real authentication system of some sort... this needs to happen. In the meantime, use htpasswd or a similar tool
 * Access control, so you can grant control over individual servers instead of all of them.
 * Web based configuration of services.
 * UI Clustering (one UI to rule multiple TameTheArk UIs)
