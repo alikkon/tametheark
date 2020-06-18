@@ -1,6 +1,7 @@
 <?php
 
 require_once "functions.php";
+$conf = parse_ini_file('../conf/conf.php');
 
 function escape($thing) {
     return htmlentities($thing);
@@ -89,7 +90,8 @@ function run() {
 	}
     }
     
-    header('Location: /');
+    header('Location: '.$conf['scriptpath']);
+    #header('Location: /');
 }
 
 run();

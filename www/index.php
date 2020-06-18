@@ -282,7 +282,7 @@
   if ($conf['steam_ids']) {
     if ((!$_SESSION['steam_id']) || (!in_array($_SESSION['steam_id'],$conf['steam_ids']))) {
       if ($_SESSION['steam_id']) { print "<div>User ".$_SESSION['steam_id']." not allowed.</div>"; }
-      print "<a href='/try_auth.php?openid_identifier=https://steamcommunity.com/openid/'>Login with Steam</a>";
+      print "<a href='//".$_SERVER['SERVER_NAME'].$conf['scriptpath']."try_auth.php?openid_identifier=https://steamcommunity.com/openid/'>Login with Steam</a>";
       print "</body>\n";
       print "</html>";
       exit;
