@@ -7,7 +7,7 @@ function escape($thing) {
     return htmlentities($thing);
 }
 
-function run() {
+function run($conf) {
     $consumer = getConsumer();
 
     // Complete the authentication process using the server's
@@ -94,6 +94,6 @@ function run() {
     #header('Location: /');
 }
 
-run();
+run($conf);
 
 ?>

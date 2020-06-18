@@ -2,20 +2,8 @@
 
 require_once "functions.php";
 
-function getOpenIDURL() {
-    // Render a default page if we got a submission without an openid
-    // value.
-    if (empty($_GET['openid_identifier'])) {
-        $error = "Expected an OpenID URL.";
-        include 'index.php';
-        exit(0);
-    }
-
-    return $_GET['openid_identifier'];
-}
-
 function run() {
-    $openid = getOpenIDURL();
+    $openid = 'https://steamcommunity.com/openid/';
     $consumer = getConsumer();
 
     // Begin the OpenID authentication process.

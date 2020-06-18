@@ -3,8 +3,8 @@
   if (!file_exists('../conf/conf.php')) { print "Create conf.php before running this script."; }
   $conf = parse_ini_file('../conf/conf.php');
   $conf['steam_ids'];
-  include('functions.php');
-  if ($_GET['act'] == 'logout') { $_SESSION = []; }
+  include_once('functions.php');
+  if (isset($_GET['act']) && ($_GET['act'] == 'logout')) { $_SESSION = []; }
 ?>
 <html>
 <head>
@@ -277,12 +277,17 @@
 </script>
 </head>
 <body>
+<?php
+  if (isset($error)) {
+    print "<h2 class='color: red'>Authentication error: $error</div>";
+  }
+?>
 <h1>Tame The Ark</h1>
 <?php
-  if ($conf['steam_ids']) {
+  if (isset($conf['steam_ids']) and ($conf['steam_ids'])) {
     if ((!$_SESSION['steam_id']) || (!in_array($_SESSION['steam_id'],$conf['steam_ids']))) {
       if ($_SESSION['steam_id']) { print "<div>User ".$_SESSION['steam_id']." not allowed.</div>"; }
-      print "<a href='//".$_SERVER['SERVER_NAME'].$conf['scriptpath']."try_auth.php?openid_identifier=https://steamcommunity.com/openid/'>Login with Steam</a>";
+      print "<a href='//".$_SERVER['SERVER_NAME'].$conf['scriptpath']."try_auth.php'>Login with Steam</a>";
       print "</body>\n";
       print "</html>";
       exit;
