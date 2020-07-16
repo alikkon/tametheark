@@ -309,22 +309,22 @@
 
   function addArkCluster($arks, $cluster = '') {
     $solocmds = array(
-                'save' => array('title' => 'Save', 'help' => "Sends the 'Save' command"),
-                'shutdown' => array('title' => 'Shutdown', 'help' => 'Shuts down this Ark'),
-                'startup' => array('title' => 'Startup', 'help' => 'Starts this Ark'),
-                'update' => array('title' => 'Update', 'help' => "Stops, updates, restarts this Ark"),
-                'maintenance' => array('title' => 'Maintain', 'help' => "Like update, but with warning messages in-game"),
-                'restart' => array('title' => 'Restart', 'help' => "Stop and restart this Ark"),
-                'clearop' => array('title' => "Clear Op", 'help' => 'Clear the operation marker')
+                'save' => array('title' => 'Save', 'help' => "Sends the 'Save' command."),
+                'shutdown' => array('title' => 'Shutdown', 'help' => 'Shuts down this Ark.'),
+                'startup' => array('title' => 'Startup', 'help' => 'Starts this Ark.'),
+                'update' => array('title' => 'Update', 'help' => "Updates the game files for this Ark - Arks should usually shutdown before updating."),
+                'maintenance' => array('title' => 'Maintain', 'help' => "Provides in-game warning messages before stopping, updating, and starting your Ark."),
+                'restart' => array('title' => 'Restart', 'help' => "Stop and restart this Ark."),
+                'clearop' => array('title' => "Clear Op", 'help' => 'Clear the operation marker.')
                );
     $sharedcmds = array(
-                'save' => array('title' => 'Save', 'help' => "Sends the 'Save' command"),
-                'shutdown' => array('title' => 'Shutdown', 'help' => 'Shuts down this Ark'),
-                'startup' => array('title' => 'Startup', 'help' => 'Starts this Ark'),
-                'update' => array('title' => 'Update', 'help' => "Stops, updates, restarts this Ark"),
-                'maintenance' => array('title' => 'Maintain', 'help' => "Like update, but with warning messages in-game"),
-                'restart' => array('title' => 'Restart', 'help' => "Stop and restart this Ark"),
-                'clearop' => array('title' => "Clear Op", 'help' => 'Clear the operation marker')
+                'save' => array('title' => 'Save', 'help' => "Sends the 'Save' command."),
+                'shutdown' => array('title' => 'Shutdown', 'help' => 'Shuts down this Ark.'),
+                'startup' => array('title' => 'Startup', 'help' => 'Starts this Ark.'),
+                'update' => array('title' => 'Update', 'help' => "Updates the game files for this Ark - Arks should usually shutdown before updating."),
+                'maintenance' => array('title' => 'Maintain', 'help' => "Provides in-game warning messages before stopping, updating, and starting your Ark."),
+                'restart' => array('title' => 'Restart', 'help' => "Stop and restart this Ark."),
+                'clearop' => array('title' => "Clear Op", 'help' => 'Clear the operation marker.')
                );
     $clustercmds = array(
                 'save' => array('title' => 'Save', 'help' => "Sends the 'Save' command to all nodes in a cluster"),

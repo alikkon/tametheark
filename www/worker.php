@@ -6,7 +6,14 @@
     define('SRC_DEAD','1');
     define('SRC_DEGRADED','2');
     include_once('./worker.class.php');
+    $conf = parse_ini_file('../conf/conf.php');
 
+    if (isset($conf['steam_ids']) and ($conf['steam_ids'])) {
+        if ((!$_SESSION['steam_id']) || (!in_array($_SESSION['steam_id'],$conf['steam_ids']))) {
+            print json_encode(array('error' => 'Authentication expired. Reload this page.'));
+            exit;
+        }
+    }
     if (!isset($_POST['server']) || !isset($_POST['command'])) {
         print json_encode(array('error' => 'Malformed request: Missing parameter.')); exit;
     } else {
