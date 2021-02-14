@@ -5,7 +5,7 @@ We also use the openid php-openid library, which can be found here: https://gith
 
 ## What is TameTheArk
 
-TameTheArk is a web based UI for managing your Ark: Survival Evolved (video game) services on a single server. It has been tested with Apache. Currently, it requires that the Apache server be run as the user who runs Steam.
+TameTheArk is a web based UI for managing your Ark: Survival Evolved (video game) services on a single server. It has been tested with Apache. You'll either need to run apache as your steam/ark user, or you'll need to use the sudo setting in conf.php
 
 ## What is required for TameTheArk to operate?
 
